@@ -1,0 +1,59 @@
+application:
+  subdomain: tandoor
+  multi_instance: false
+  upstreams:
+    - location: /
+      backend: http://tandoor:80/
+  injects:
+    - id: login-autofill
+      on: browser
+      when:
+        - /accounts/login/
+      do:
+        - src: builtin://simple-inject-password
+          params:
+            user: |-
+              {{ .U.login_user | replace "\r" "" | replace "\n" "\n              " }}
+            password: |-
+              {{ .U.login_secret | replace "\r" "" | replace "\n" "\n              " }}
+            userSelector: 'input[name="login"]'
+            passwordSelector: 'input[name="password"]'
+            autoSubmit: false
+services:
+  tandoor:
+    # upstream: docker.io/vabene1111/recipes:2.7.2
+    image: docker.1ms.run/vabene1111/recipes:2.7.2
+    depends_on:
+      - postgres
+    environment:
+      - SECRET_KEY={{ printf "%x" (stable_secret "tandoor-django") }}
+      - DEBUG=0
+      - TZ=Asia/Shanghai
+      - ALLOWED_HOSTS={{ .S.AppDomain }},tandoor,localhost,127.0.0.1
+      - CSRF_TRUSTED_ORIGINS=https://{{ .S.AppDomain }}
+      - DB_ENGINE=django.db.backends.postgresql
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=tandoor
+      - POSTGRES_USER=tandoor
+      - POSTGRES_PASSWORD={{ stable_secret "tandoor-postgres" }}
+    binds:
+      - /lzcapp/var/media:/opt/recipes/mediafiles
+  postgres:
+    # upstream: docker.io/library/postgres:16-alpine
+    image: docker.1ms.run/library/postgres:16-alpine
+    environment:
+      - POSTGRES_DB=tandoor
+      - POSTGRES_USER=tandoor
+      - POSTGRES_PASSWORD={{ stable_secret "tandoor-postgres" }}
+    binds:
+      - /lzcapp/var/postgres:/var/lib/postgresql/data
+usage: |
+  Tandoor Recipes管理食谱、膳食计划和购物清单。全新安装请在原应用/setup/手动创建超级用户，使用与部署参数一致的用户名/密码并满足原应用规则。
+  参数仅用于/accounts/login/填充，不自动建号或重置已有账号，填充不自动提交；应用内改密后同步参数。入口保留懒猫鉴权，无匿名公共路径。
+  先完成首次设置再向可信成员开放；平台授权不自动映射Tandoor内部用户/空间，当前填充账号应只给可信成员使用。
+  数据库与媒体分别在/lzcapp/var/postgres和/lzcapp/var/media，卸载前须一起备份。PostgreSQL固定16主版本，勿直接跨大版本复用数据。
+  保留原入口权限、等待数据库、迁移和collectstatic流程；静态资源使用镜像内容及原入口生成，不挂载空静态目录遮蔽资源。不新增healthcheck、smoke或启动测试作业。
+  首次初始化可能较慢；URL导入、邮件与其他集成依赖外部网络和原应用配置。不包含外部服务凭据，不接文件选择器拦截。
+  当前版本采用AGPL-3.0；LICENSE中历史MIT段只指0.10以前版本，不表示当前双许可证。
+  未验证实机启动、迁移、首次账号、登录填充、导入、编辑、购物计划、邮件或持久化。

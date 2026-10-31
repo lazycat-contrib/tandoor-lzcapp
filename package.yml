@@ -1,0 +1,18 @@
+package: community.lazycat.app.tandoor
+version: 2.7.2
+name: Tandoor Recipes
+description: Recipe management, meal planning and shopping lists with persistent PostgreSQL and media storage.
+min_os_version: "1.5.0"
+homepage: https://github.com/TandoorRecipes/recipes
+author: TandoorRecipes
+license: AGPL-3.0-only
+permissions:
+  required:
+    - net.internet
+locales:
+  zh:
+    name: Tandoor Recipes
+    description: 食谱管理、膳食计划与购物清单，使用 PostgreSQL 和独立媒体目录持久保存数据。
+  en:
+    name: Tandoor Recipes
+    description: Recipe management, meal planning and shopping lists with persistent PostgreSQL and media storage.

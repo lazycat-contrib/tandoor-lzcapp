@@ -1,0 +1,21 @@
+params:
+  - id: login_user
+    type: string
+    name: Login username
+    description: Use this username when manually creating the first superuser at /setup/; this parameter only controls later login autofill.
+    default_value: admin
+    optional: false
+  - id: login_secret
+    type: secret
+    name: Login secret
+    description: Use the same credential during first setup and confirmation. This parameter does not create/reset an account; keep it synchronized after changes in Tandoor.
+    default_value: "$random(len=20)"
+    optional: false
+locales:
+  zh:
+    login_user:
+      name: 登录用户名
+      description: 首次设置手动填写同一用户名；此参数本身只控制后续填充，不自动建号。
+    login_secret:
+      name: 登录密码
+      description: 首次设置及确认框请手动填写同一密码，并满足原应用强度要求。参数不创建或重置账号，应用内修改后需同步这里。
